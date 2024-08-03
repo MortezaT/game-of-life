@@ -1,0 +1,7 @@
+{
+  "name": "game-of-life",
+  "version": "0.0.1",
+  "author": "Morteza <morteza.tourani@gmail.com>",
+  "license": "MIT",
+  "private": true
+}
