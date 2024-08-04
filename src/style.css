@@ -1,1 +1,40 @@
+:root {
+  --cell-bg: #323232;
+  --live-cell-bg: #aeaeae;
+  /* --border-color: #fff; */
+}
 
+*{
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  display: inline-block;
+}
+
+.world {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  /* border: 1px solid var(--border-color); */
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  width: 10px;
+  height: 10px;
+  /* border: 1px solid var(--border-color); */
+  background-color: var(--cell-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.live {
+  background-color: var(--live-cell-bg);
+}
