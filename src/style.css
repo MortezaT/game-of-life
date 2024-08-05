@@ -4,13 +4,20 @@
   /* --border-color: #fff; */
 }
 
-*{
+* {
   margin: 0;
   padding: 0;
 }
 
 #app {
   display: inline-block;
+}
+
+header {
+  display: flex;
+  gap: 16px;
+  height: 64px;
+  align-items: center;
 }
 
 .world {
