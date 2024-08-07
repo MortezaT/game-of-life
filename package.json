@@ -3,5 +3,10 @@
   "version": "0.0.1",
   "author": "Morteza <morteza.tourani@gmail.com>",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@eslint/js": "^9.8.0",
+    "eslint": "9.x",
+    "globals": "^15.9.0"
+  }
 }
