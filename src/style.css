@@ -1,7 +1,7 @@
 :root {
-  --cell-bg: #323232;
+  --cell-bg: #1A3636;
   --live-cell-bg: #aeaeae;
-  /* --border-color: #fff; */
+  --header-bg: #677D6A;
 }
 
 * {
@@ -10,6 +10,7 @@
 }
 
 #app {
+  width: 100%;
   display: inline-block;
 }
 
@@ -18,13 +19,39 @@ header {
   gap: 16px;
   height: 64px;
   align-items: center;
+  justify-content: center;
+  background-color: var(--header-bg);
+}
+
+header div {
+  color: white;
+  padding: 8px;
+  border-radius: 7px;
+}
+
+button {
+  border: none;
+  padding: 10px;
+  border-radius: 7px;
+}
+
+button:hover {
+  box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
+  transform: translateY(-2px);
+}
+
+input {
+  border: none;
+  color: black;
+  text-align: center;
+  padding: 10px;
+  border-radius: 7px;
 }
 
 .world {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  /* border: 1px solid var(--border-color); */
 }
 
 .row {
@@ -34,7 +61,7 @@ header {
 .cell {
   width: 10px;
   height: 10px;
-  /* border: 1px solid var(--border-color); */
+  border: 1px solid black;
   background-color: var(--cell-bg);
   display: flex;
   align-items: center;

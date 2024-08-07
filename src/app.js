@@ -1,12 +1,14 @@
 const app = () => {
-  const worldWidth = 120;
-  const worldHeight = 80;
-  const interval = 50;
+  const worldWidth = 100;
+  const worldHeight = 50;
+  let interval = 50;
   let isPlaying = false;
 
   const worldNode = document.getElementById('world');
   const playPauseButton = document.getElementById('play-pause');
   const resetButton = document.getElementById('reset');
+  const setIntervalBtn = document.getElementById('setInterval');
+  const newInterval = document.getElementById('newInterval');
 
   let worldMap = createWorldMap();
   createWorld();
@@ -20,6 +22,25 @@ const app = () => {
   renderWorld();
   bindListeners();
 
+  setIntervalBtn.addEventListener('click', () => {
+    setNewInterval();
+  });
+  document.addEventListener('keydown', () => {
+    if (event.keyCode == 13) {
+      setNewInterval();
+    }
+  });
+
+  function setNewInterval() {
+    if (newInterval.value.length > 0) {
+      interval = parseInt(newInterval.value);
+      if (isPlaying) {
+        togglePlay();
+        setTimeout(togglePlay(), 1);
+      }
+    }
+  }
+
   function createWorldMap() {
     const world = [];
     for (let i = 0; i < worldHeight; i++) {
@@ -28,12 +49,11 @@ const app = () => {
         world[i][j] = false;
       }
     }
-
     return world;
   }
 
   function createWorld() {
-    worldMap.forEach((row, i) => {
+    const result = worldMap.forEach((row, i) => {
       const rowNode = document.createElement('div');
       rowNode.className = 'row';
 
@@ -64,28 +84,13 @@ const app = () => {
   }
 
   function calculateNextStep() {
-    /* const newWorldMap = createWorldMap()
-    worldMap.forEach((row, i) => {
-      row.forEach((isAlive, j) => {
-        const liveNeighborsCount = getLiveNeighborsCount(i, j)
-        newWorldMap[i][j] = willSurvive(isAlive, liveNeighborsCount)
-      })
-    }) */
-
-    return worldMap
-      .map((row, i) =>
-        row.map((isAlive, j) =>
-          willSurvive(isAlive, getLiveNeighborsCount(i, j))
-        )
-      );
-
-    // return newWorldMap
+    return worldMap.map((row, i) =>
+      row.map((isAlive, j) => willSurvive(isAlive, getLiveNeighborsCount(i, j)))
+    );
   }
 
   function getLiveNeighborsCount(i, j) {
     const neighbors = [];
-    i = +i;
-    j = +j;
     for (let x = i - 1; x <= i + 1; x++) {
       let row = worldMap[(worldHeight + x) % worldHeight];
 
@@ -103,14 +108,11 @@ const app = () => {
   function willSurvive(isAlive, liveNeighborsCount) {
     // Any live cell with fewer than two live neighbors dies, as if by under-population.
     // Any live cell with more than three live neighbors dies, as if by overpopulation.
-    if (liveNeighborsCount < 2 || liveNeighborsCount > 3)
-      return false;
+    if (liveNeighborsCount < 2 || liveNeighborsCount > 3) return false;
     // Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
-    if (liveNeighborsCount == 3)
-      return true;
+    if (liveNeighborsCount == 3) return true;
     // Any live cell with two or three live neighbors lives on to the next generation.
-    if (liveNeighborsCount == 2)
-      return isAlive;
+    if (liveNeighborsCount == 2) return isAlive;
   }
 
   function next() {
@@ -139,8 +141,7 @@ const app = () => {
       clearInterval(togglePlay.intervalId);
       togglePlay.intervalId = null;
       isPlaying = false;
-    }
-    else {
+    } else {
       togglePlay.intervalId = setInterval(next, interval);
       isPlaying = true;
     }
