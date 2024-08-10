@@ -7,8 +7,8 @@ const app = () => {
   const worldNode = document.getElementById('world');
   const playPauseButton = document.getElementById('play-pause');
   const resetButton = document.getElementById('reset');
-  const setIntervalBtn = document.getElementById('setInterval');
-  const newInterval = document.getElementById('newInterval');
+  const setIntervalButton = document.getElementById('set-interval');
+  const intervalInput = document.getElementById('interval-input');
 
   let worldMap = createWorldMap();
   createWorld();
@@ -22,21 +22,19 @@ const app = () => {
   renderWorld();
   bindListeners();
 
-  setIntervalBtn.addEventListener('click', () => {
-    setNewInterval();
-  });
-  document.addEventListener('keydown', () => {
+  setIntervalButton.addEventListener('click', onChangeInterval());
+  intervalInput.addEventListener('keydown', () => {
     if (event.keyCode == 13) {
-      setNewInterval();
+      onChangeInterval();
     }
   });
 
-  function setNewInterval() {
-    if (newInterval.value.length > 0) {
-      interval = parseInt(newInterval.value);
+  function onChangeInterval() {
+    if (intervalInput.value.length > 0) {
+      interval = parseInt(intervalInput.value);
       if (isPlaying) {
         togglePlay();
-        setTimeout(togglePlay(), 1);
+        setTimeout(togglePlay, 1);
       }
     }
   }
@@ -53,7 +51,7 @@ const app = () => {
   }
 
   function createWorld() {
-    const result = worldMap.forEach((row, i) => {
+    worldMap.forEach((row, i) => {
       const rowNode = document.createElement('div');
       rowNode.className = 'row';
 
@@ -108,11 +106,14 @@ const app = () => {
   function willSurvive(isAlive, liveNeighborsCount) {
     // Any live cell with fewer than two live neighbors dies, as if by under-population.
     // Any live cell with more than three live neighbors dies, as if by overpopulation.
-    if (liveNeighborsCount < 2 || liveNeighborsCount > 3) return false;
+    if (liveNeighborsCount < 2 || liveNeighborsCount > 3)
+      return false;
     // Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
-    if (liveNeighborsCount == 3) return true;
+    if (liveNeighborsCount == 3)
+      return true;
     // Any live cell with two or three live neighbors lives on to the next generation.
-    if (liveNeighborsCount == 2) return isAlive;
+    if (liveNeighborsCount == 2)
+      return isAlive;
   }
 
   function next() {
