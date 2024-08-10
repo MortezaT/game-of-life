@@ -22,7 +22,7 @@ const app = () => {
   renderWorld();
   bindListeners();
 
-  setIntervalButton.addEventListener('click', onChangeInterval());
+  setIntervalButton.addEventListener('click', onChangeInterval);
   intervalInput.addEventListener('keydown', () => {
     if (event.keyCode == 13) {
       onChangeInterval();
