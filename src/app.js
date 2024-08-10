@@ -1,12 +1,14 @@
 const app = () => {
-  const worldWidth = 120;
-  const worldHeight = 80;
-  const interval = 50;
+  const worldWidth = 100;
+  const worldHeight = 50;
+  let interval = 50;
   let isPlaying = false;
 
   const worldNode = document.getElementById('world');
   const playPauseButton = document.getElementById('play-pause');
   const resetButton = document.getElementById('reset');
+  const setIntervalButton = document.getElementById('set-interval');
+  const intervalInput = document.getElementById('interval-input');
 
   let worldMap = createWorldMap();
   createWorld();
@@ -20,6 +22,23 @@ const app = () => {
   renderWorld();
   bindListeners();
 
+  setIntervalButton.addEventListener('click', onChangeInterval);
+  intervalInput.addEventListener('keydown', () => {
+    if (event.keyCode == 13) {
+      onChangeInterval();
+    }
+  });
+
+  function onChangeInterval() {
+    if (intervalInput.value.length > 0) {
+      interval = parseInt(intervalInput.value);
+      if (isPlaying) {
+        togglePlay();
+        setTimeout(togglePlay, 1);
+      }
+    }
+  }
+
   function createWorldMap() {
     const world = [];
     for (let i = 0; i < worldHeight; i++) {
@@ -28,7 +47,6 @@ const app = () => {
         world[i][j] = false;
       }
     }
-
     return world;
   }
 
@@ -64,28 +82,13 @@ const app = () => {
   }
 
   function calculateNextStep() {
-    /* const newWorldMap = createWorldMap()
-    worldMap.forEach((row, i) => {
-      row.forEach((isAlive, j) => {
-        const liveNeighborsCount = getLiveNeighborsCount(i, j)
-        newWorldMap[i][j] = willSurvive(isAlive, liveNeighborsCount)
-      })
-    }) */
-
-    return worldMap
-      .map((row, i) =>
-        row.map((isAlive, j) =>
-          willSurvive(isAlive, getLiveNeighborsCount(i, j))
-        )
-      );
-
-    // return newWorldMap
+    return worldMap.map((row, i) =>
+      row.map((isAlive, j) => willSurvive(isAlive, getLiveNeighborsCount(i, j)))
+    );
   }
 
   function getLiveNeighborsCount(i, j) {
     const neighbors = [];
-    i = +i;
-    j = +j;
     for (let x = i - 1; x <= i + 1; x++) {
       let row = worldMap[(worldHeight + x) % worldHeight];
 
@@ -139,8 +142,7 @@ const app = () => {
       clearInterval(togglePlay.intervalId);
       togglePlay.intervalId = null;
       isPlaying = false;
-    }
-    else {
+    } else {
       togglePlay.intervalId = setInterval(next, interval);
       isPlaying = true;
     }
