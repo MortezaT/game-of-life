@@ -12,8 +12,11 @@
 #app {
   width: 100%;
   display: flex;
-  flex-direction: column;
   gap: 24px;
+  flex-flow: column;
+  align-items: stretch;
+  justify-content: stretch;
+  min-height: 100ch;
 }
 
 header {
@@ -54,23 +57,36 @@ input {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  flex: 1 0 0;
+  align-items: stretch;
+  justify-content: stretch;
+  width: 100%;
 }
 
 .row {
   display: flex;
+  flex: 1;
 }
 
 .cell {
-  width: 50px;
-  height: 50px;
   border: 1px solid black;
   background-color: var(--cell-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
+  flex: 1;
+}
+
+.cell:hover {
+  background-color: var(--live-cell-bg);
 }
 
 .live {
   background-color: var(--live-cell-bg);
+}
+
+#play-pause {
+  background-color: red;
+  color: white;
 }
