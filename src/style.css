@@ -90,7 +90,11 @@ input {
   background-color: #E4003A;
 }
 
-#play-pause {
+.play-pause {
   background-color: red;
   color: white;
+}
+
+.play-pause-active {
+  background-color: green;
 }
