@@ -78,12 +78,16 @@ input {
   flex: 1;
 }
 
-.cell:hover {
+.cell:not(.live):hover {
   background-color: var(--live-cell-bg);
 }
 
 .live {
   background-color: var(--live-cell-bg);
+}
+
+.live:hover {
+  background-color: #E4003A;
 }
 
 #play-pause {
