@@ -33,10 +33,12 @@ export class World {
     clearInterval(this.#intervalId);
     this.#intervalId = null;
     this.isRunning = false;
+    document.getElementById('play-pause').classList.remove('play-pause-active');
   };
   resume = () => {
     this.#intervalId = setInterval(this.next, this.#interval);
     this.isRunning = true;
+    document.getElementById('play-pause').classList.add('play-pause-active');
   };
   reset = () => {
     this.stop();
@@ -48,7 +50,6 @@ export class World {
     this.state.forEach((row, i) => {
       row.forEach((isAlive, j) => {
         const cellNode = cells[i * this.width + j];
-        // const cellNode = this.node.querySelector(`.cell#${getCellId(this.nodeName, i, j)}`);
 
         if (isAlive) {
           cellNode.classList.add('live');
