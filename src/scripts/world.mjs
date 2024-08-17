@@ -3,6 +3,7 @@ import { willCellSurvive } from './utils.mjs';
 export class World {
   #intervalId = null;
   #interval = 50;
+  #eventHandlers = {};
 
   state = null;
   isRunning = false;
@@ -33,12 +34,12 @@ export class World {
     clearInterval(this.#intervalId);
     this.#intervalId = null;
     this.isRunning = false;
-    document.getElementById('play-pause').classList.remove('play-pause-active');
+    this.#emit('stop');
   };
   resume = () => {
     this.#intervalId = setInterval(this.next, this.#interval);
     this.isRunning = true;
-    document.getElementById('play-pause').classList.add('play-pause-active');
+    this.#emit('resume');
   };
   reset = () => {
     this.stop();
@@ -84,6 +85,23 @@ export class World {
 
     return neighbors.filter(Boolean).length;
   }
+  addEventListener = (eventType, eventHandler) => {
+    if (!this.#eventHandlers[eventType]) {
+      this.#eventHandlers[eventType] = [];
+    }
+    this.#eventHandlers[eventType].push(eventHandler);
+  };
+  removeEventListener = (eventType, eventHandler) => {
+    const handlers = this.#eventHandlers[eventType];
+    if (!handlers?.length) return;
+    // const index = handlers.findIndex((handler) => handler == eventHandler);
+    // if(index<0) return;
+    // handlers.splice(index, 1);
+    this.#eventHandlers[eventType] = handlers.filter((handler) => handler != eventHandler);
+  };
+  #emit = (eventType) => {
+    this.#eventHandlers[eventType]?.forEach(handler => handler());
+  };
   #init = () => {
     this.#initState();
     this.#initUI();

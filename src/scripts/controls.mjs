@@ -4,6 +4,8 @@ export const initControls = (world) => {
   const setIntervalButton = document.getElementById('set-interval');
   const intervalInput = document.getElementById('interval-input');
 
+  world.addEventListener('resume', () => playPauseButton.classList.add('play-pause-active'));
+  world.addEventListener('stop', () => playPauseButton.classList.remove('play-pause-active'));
   setIntervalButton.addEventListener('click', onChangeInterval);
   playPauseButton.addEventListener('click', world.toggle);
   resetButton.addEventListener('click', world.reset);
