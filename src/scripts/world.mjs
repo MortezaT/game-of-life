@@ -1,5 +1,11 @@
 import { willCellSurvive } from './utils.mjs';
 
+const defaultOptions = {
+  width: 100,
+  height: 50,
+  initialState: []
+};
+
 export class World {
   #intervalId = null;
   #interval = 50;
@@ -9,7 +15,7 @@ export class World {
   isRunning = false;
 
   set interval(value) {
-    value = + value;
+    value = +value;
     if (isNaN(value)) return;
     this.#interval = value;
     if (this.isRunning) {
@@ -19,57 +25,38 @@ export class World {
 
   constructor(
     node,
-    width = 100,
-    height = 50
+    options
   ) {
+    const { width, height, initialState } = { ...defaultOptions, ...options };
     this.width = width;
     this.height = height;
     this.node = node;
+    this.initialState = initialState;
 
     this.#init();
   }
 
   toggle = () => this.isRunning ? this.stop() : this.resume();
+
   stop = () => {
     clearInterval(this.#intervalId);
     this.#intervalId = null;
     this.isRunning = false;
     this.#emit('stop');
   };
+
   resume = () => {
-    this.#intervalId = setInterval(this.next, this.#interval);
+    this.#intervalId = setInterval(this.#next, this.#interval);
     this.isRunning = true;
     this.#emit('resume');
   };
+
   reset = () => {
     this.stop();
     this.#initState();
-    this.render();
+    this.#render();
   };
-  render = () => {
-    const cells = this.node.getElementsByClassName('cell');
-    this.state.forEach((row, i) => {
-      row.forEach((isAlive, j) => {
-        const cellNode = cells[i * this.width + j];
 
-        if (isAlive) {
-          cellNode.classList.add('live');
-        } else {
-          cellNode.classList.remove('live');
-        }
-      });
-    });
-  };
-  calculateNextState = () => {
-    const newState = this.state.map((row, i) =>
-      row.map((isAlive, j) => willCellSurvive(isAlive, this.getLiveNeighborsCount(i, j)))
-    );
-    this.state = newState;
-  };
-  next = () => {
-    this.calculateNextState();
-    this.render();
-  };
   getLiveNeighborsCount(i, j) {
     const neighbors = [];
     for (let x = i - 1; x <= i + 1; x++) {
@@ -85,12 +72,14 @@ export class World {
 
     return neighbors.filter(Boolean).length;
   }
+
   addEventListener = (eventType, eventHandler) => {
     if (!this.#eventHandlers[eventType]) {
       this.#eventHandlers[eventType] = [];
     }
     this.#eventHandlers[eventType].push(eventHandler);
   };
+
   removeEventListener = (eventType, eventHandler) => {
     const handlers = this.#eventHandlers[eventType];
     if (!handlers?.length) return;
@@ -99,23 +88,58 @@ export class World {
     // handlers.splice(index, 1);
     this.#eventHandlers[eventType] = handlers.filter((handler) => handler != eventHandler);
   };
+
+  #render = () => {
+    const cells = this.node.getElementsByClassName('cell');
+    this.state.forEach((row, i) => {
+      row.forEach((isAlive, j) => {
+        const cellNode = cells[i * this.width + j];
+
+        if (isAlive) {
+          cellNode.classList.add('live');
+        } else {
+          cellNode.classList.remove('live');
+        }
+      });
+    });
+  };
+
+  #calculateNextState = () => {
+    const newState = this.state.map((row, i) =>
+      row.map((isAlive, j) => willCellSurvive(isAlive, this.getLiveNeighborsCount(i, j)))
+    );
+    this.state = newState;
+  };
+
+  #next = () => {
+    this.#calculateNextState();
+    this.#render();
+    this.#emit('change');
+  };
+
   #emit = (eventType) => {
     this.#eventHandlers[eventType]?.forEach(handler => handler());
   };
+
   #init = () => {
     this.#initState();
     this.#initUI();
+    this.#render();
   };
+
   #initState = () => {
     const state = [];
+
     for (let i = 0; i < this.height; i++) {
       state[i] = [];
       for (let j = 0; j < this.width; j++) {
-        state[i][j] = false;
+        state[i][j] = this.initialState[i]?.[j] || false;
       }
     }
+
     this.state = state;
   };
+
   #initUI = () => {
     this.state.forEach((row, i) => {
       const rowNode = document.createElement('div');
@@ -140,7 +164,7 @@ export class World {
       const j = +e.target.dataset['j'];
 
       this.state[i][j] = !this.state[i][j];
-      this.render();
+      this.#render();
     });
   };
 }

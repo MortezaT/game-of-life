@@ -1,25 +1,37 @@
-// TODO: Make everything functional (intro to functional programming)
-// TODO: Provide the option to add entities (like glider, etc)
-// TODO: Persist world state
 // TODO: Use SVG as the world
 // TODO: Use Canvas as the world
 // TODO: Use Workers as the world
 
 import { initControls } from './controls.mjs';
+import { Store } from './store.mjs';
 import { World } from './world.mjs';
 
-const app = {
-  init: () => {
-    const worlds = [];
-    window.worlds = worlds;
+class App {
+  #worlds = [];
+  #store = new Store(true);
+  init = () => {
     const nodes = document.querySelectorAll('.world');
-    nodes.forEach(node => {
-
-      const world = new World(node, 50, 50);
+    nodes.forEach((node, id) => {
+      const world = new World(node, {
+        width: 100,
+        height: 50,
+        initialState: this.#store.get(id),
+      });
       initControls(world);
-      worlds.push(world);
+      this.#worlds.push({ id, world, });
+      this.#addListeners();
     });
-  }
+  };
+
+  #addListeners = () => {
+    this.#worlds.forEach(({ id, world }) => {
+      world.addEventListener('change', () => {
+        this.#store.set(id, world.state);
+      });
+    });
+  };
 };
+
+const app = new App();
 
 app.init();
