@@ -9,25 +9,42 @@ const defaultOptions = {
 export class World {
   #intervalId = null;
   #interval = 50;
+  #width = defaultOptions.width;
+  #height = defaultOptions.height;
   #eventHandlers = {};
 
   state = null;
   isRunning = false;
 
+  get interval() { return this.#interval; };
+
   set interval(value) {
-    value = +value;
     if (isNaN(value)) return;
-    this.#interval = value;
-    if (this.isRunning) {
-      this.toggle();
-    }
+    this.#interval = +value;
+    this.reload();
+  }
+
+  get width() { return this.#width; };
+
+  set width(value) {
+    if (isNaN(value)) return;
+    this.#width = +value;
+    this.reload();
+  }
+
+  get height() { return this.#height; };
+
+  set height(value) {
+    if (isNaN(value)) return;
+    this.#height = +value;
+    this.reload();
   }
 
   constructor(
     node,
     options
   ) {
-    const { width, height, initialState } = { ...defaultOptions, ...options };
+    const { width, height, initialState = defaultOptions.initialState } = options;
     this.width = width;
     this.height = height;
     this.node = node;
@@ -38,6 +55,13 @@ export class World {
 
   toggle = () => this.isRunning ? this.stop() : this.resume();
 
+  reload = () => {
+    if (this.isRunning) {
+      this.stop();
+      this.resume();
+    }
+  };
+
   stop = () => {
     clearInterval(this.#intervalId);
     this.#intervalId = null;
@@ -46,13 +70,20 @@ export class World {
   };
 
   resume = () => {
-    this.#intervalId = setInterval(this.#next, this.#interval);
+    this.#intervalId = setInterval(this.nextStep, this.#interval);
     this.isRunning = true;
     this.#emit('resume');
   };
 
   reset = () => {
     this.stop();
+    this.#initState();
+    this.#render();
+  };
+
+  clear = () => {
+    this.stop();
+    this.initialState = [];
     this.#initState();
     this.#render();
   };
@@ -83,9 +114,6 @@ export class World {
   removeEventListener = (eventType, eventHandler) => {
     const handlers = this.#eventHandlers[eventType];
     if (!handlers?.length) return;
-    // const index = handlers.findIndex((handler) => handler == eventHandler);
-    // if(index<0) return;
-    // handlers.splice(index, 1);
     this.#eventHandlers[eventType] = handlers.filter((handler) => handler != eventHandler);
   };
 
@@ -111,7 +139,7 @@ export class World {
     this.state = newState;
   };
 
-  #next = () => {
+  nextStep = () => {
     this.#calculateNextState();
     this.#render();
     this.#emit('change');
