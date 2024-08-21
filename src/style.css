@@ -1,7 +1,24 @@
 :root {
+  --body-bg: #fffbe6;
+  --side-bar-bg: #677d6a;
+  --input-text: black;
   --cell-bg: #1a3636;
   --live-cell-bg: #aeaeae;
-  --header-bg: #677d6a;
+  --play-btn: green;
+  --pause-btn: red;
+  --live-cell-hover: #e4003a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --body-bg: #1e201e;
+    --side-bar-bg: #1a3636;
+  }
+}
+
+body {
+  margin: 0;
+  background-color: var(--body-bg);
 }
 
 * {
@@ -17,21 +34,6 @@
   min-height: 100vh;
 }
 
-header {
-  display: flex;
-  gap: 16px;
-  height: 64px;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--header-bg);
-}
-
-header div {
-  color: white;
-  padding: 8px;
-  border-radius: 7px;
-}
-
 button {
   border: none;
   padding: 10px;
@@ -45,10 +47,49 @@ button:hover {
 
 input {
   border: none;
-  color: black;
-  text-align: center;
+  color: var(--input-text);
   padding: 10px;
+  width: 100%;
   border-radius: 7px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.side-bar {
+  background-color: var(--side-bar-bg);
+  width: 200px;
+  min-height: 100vh;
+  align-content: center;
+  padding: 0 20px 0 20px;
+}
+
+.play-pause-active {
+  background-color: var(--play-btn);
+}
+
+.play-pause {
+  background-color: var(--pause-btn);
+  color: white;
+  width: 200px;
+  margin: auto;
+}
+
+#clear,
+#reset {
+  width: 95px;
+  margin: 10px 0 10px 0;
+}
+
+#clear {
+  float: right;
+}
+
+.inputs-section {
+  width: 180px;
+}
+
+#apply-changes {
+  width: 100%;
 }
 
 .world {
@@ -57,7 +98,6 @@ input {
   flex: 1 0 0;
   align-items: stretch;
   justify-content: stretch;
-  padding: 24px;
 }
 
 .row {
@@ -84,14 +124,5 @@ input {
 }
 
 .live:hover {
-  background-color: #E4003A;
-}
-
-.play-pause {
-  background-color: red;
-  color: white;
-}
-
-.play-pause-active {
-  background-color: green;
+  background-color: var(--live-cell-hover);
 }
