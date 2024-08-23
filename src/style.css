@@ -12,7 +12,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --body-bg: #1e201e;
-    --side-bar-bg: #1a3636;
+    /* --side-bar-bg: #1a3636; */
   }
 }
 
@@ -28,7 +28,6 @@ body {
 
 #app {
   display: flex;
-  flex-flow: column;
   align-items: stretch;
   justify-content: stretch;
   min-height: 100vh;
@@ -47,12 +46,12 @@ button:hover {
 
 input {
   border: none;
-  color: var(--input-text);
-  padding: 10px;
-  width: 100%;
-  border-radius: 7px;
-  margin-bottom: 15px;
+  color: black;
   text-align: center;
+  padding: 10px;
+  width: 180px;
+  margin: 5px 0 5px 0;
+  border-radius: 7px;
 }
 
 .side-bar {
@@ -63,7 +62,7 @@ input {
   padding: 0 20px 0 20px;
 }
 
-.play-pause-active {
+.play-pause-active.play-pause {
   background-color: var(--play-btn);
 }
 
@@ -74,22 +73,28 @@ input {
   margin: auto;
 }
 
+#next-step {
+  width: 200px;
+  margin-top: 10px;
+}
+
 #clear,
 #reset {
   width: 95px;
-  margin: 10px 0 10px 0;
+  margin: 10px 0 5px 0;
 }
 
 #clear {
   float: right;
 }
 
-.inputs-section {
+#inputs-section {
   width: 180px;
 }
 
 #apply-changes {
   width: 100%;
+  margin-top: 5px;
 }
 
 .world {
