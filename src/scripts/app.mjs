@@ -13,8 +13,6 @@ class App {
     const nodes = document.querySelectorAll('.world');
     nodes.forEach((node, id) => {
       const world = new World(node, {
-        width: 100,
-        height: 50,
         initialState: this.#store.get(id),
       });
       initControls(world);

@@ -1,8 +1,8 @@
 import { willCellSurvive } from './utils.mjs';
 
 const defaultOptions = {
-  width: 100,
-  height: 50,
+  width: 20,
+  height: 30,
   initialState: []
 };
 
@@ -12,6 +12,7 @@ export class World {
   #width = defaultOptions.width;
   #height = defaultOptions.height;
   #eventHandlers = {};
+  #initialState = [];
 
   state = null;
   isRunning = false;
@@ -29,6 +30,7 @@ export class World {
   set width(value) {
     if (isNaN(value)) return;
     this.#width = +value;
+    this.#onResize();
     this.reload();
   }
 
@@ -37,6 +39,7 @@ export class World {
   set height(value) {
     if (isNaN(value)) return;
     this.#height = +value;
+    this.#onResize();
     this.reload();
   }
 
@@ -44,11 +47,13 @@ export class World {
     node,
     options
   ) {
-    const { width, height, initialState = defaultOptions.initialState } = options;
-    this.width = width;
-    this.height = height;
+    Object.entries(defaultOptions)
+      .forEach(([key, value]) => options[key] = options[key] ?? value);
+
     this.node = node;
-    this.initialState = initialState;
+    this.#width = options.width;
+    this.#height = options.height;
+    this.#initialState = options.initialState;
 
     this.#init();
   }
@@ -83,7 +88,7 @@ export class World {
 
   clear = () => {
     this.stop();
-    this.initialState = [];
+    this.#initialState = [];
     this.#initState();
     this.#render();
   };
@@ -149,6 +154,16 @@ export class World {
     this.#eventHandlers[eventType]?.forEach(handler => handler());
   };
 
+  #onResize = () => {
+    const wasRunning = this.isRunning;
+    if(wasRunning) this.stop();
+
+    this.#initialState = this.state;
+    this.#init();
+    
+    if(wasRunning) this.resume();
+  };
+
   #init = () => {
     this.#initState();
     this.#initUI();
@@ -161,7 +176,7 @@ export class World {
     for (let i = 0; i < this.height; i++) {
       state[i] = [];
       for (let j = 0; j < this.width; j++) {
-        state[i][j] = this.initialState[i]?.[j] || false;
+        state[i][j] = this.#initialState[i]?.[j] || false;
       }
     }
 
@@ -169,6 +184,7 @@ export class World {
   };
 
   #initUI = () => {
+    this.node.innerHTML = '';
     this.state.forEach((row, i) => {
       const rowNode = document.createElement('div');
       rowNode.className = 'row';

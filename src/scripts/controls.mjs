@@ -31,9 +31,14 @@ export const initControls = (world) => {
 
     if (event.key == 'Escape') world.clear();
 
-    // if (event.ctrlKey && event.key == 'ArrowRight') {}
+    if (event.shiftKey) {
+      if (event.key == 'ArrowUp' && world.interval > 10)
+        world.interval -= 10;
 
-    // if (event.ctrlKey && event.key == 'ArrowLeft' && interval > 10) {}
+      if (event.key == 'ArrowDown')
+        world.interval += 10;
+      intervalInput.value = world.interval;
+    }
   });
 
   function onChange() {
