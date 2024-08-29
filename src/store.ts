@@ -1,5 +1,8 @@
+import type { WorldState } from './world.js';
+
 export class Store {
-  #state = {};
+  #state: { [key in string]: WorldState } = {};
+  // #state: Record<string, WorldState> = {};
   #storeKey = 'store';
   #persist = false;
 
@@ -13,9 +16,9 @@ export class Store {
     }
   }
 
-  get = (key) => this.#state[key];
+  get = (key: string | number) => this.#state[key];
 
-  set = (key, value) => {
+  set = (key: string | number, value: WorldState) => {
     this.#state[key] = value;
     if (this.#persist) this.#updateDb();
   };
@@ -24,4 +27,3 @@ export class Store {
     localStorage.setItem(this.#storeKey, JSON.stringify(this.#state));
   };
 }
-

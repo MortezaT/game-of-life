@@ -2,21 +2,19 @@
 // TODO: Use Canvas as the world
 // TODO: Use Workers as the world
 
-import { initControls } from './controls.mjs';
-import { Store } from './store.mjs';
-import { World } from './world.mjs';
+import { initControls } from './controls.js';
+import { Store } from './store.js';
+import { World } from './world.js';
 
 class App {
-  #worlds = [];
+  #worlds: { id: number; world: World }[] = [];
   #store = new Store(true);
   init = () => {
-    const nodes = document.querySelectorAll('.world');
+    const nodes = document.querySelectorAll<HTMLElement>('.world');
     nodes.forEach((node, id) => {
-      const world = new World(node, {
-        initialState: this.#store.get(id),
-      });
+      const world = new World(node, { initialState: this.#store.get(id) });
       initControls(world);
-      this.#worlds.push({ id, world, });
+      this.#worlds.push({ id, world });
       this.#addListeners();
     });
   };
@@ -28,7 +26,7 @@ class App {
       });
     });
   };
-};
+}
 
 const app = new App();
 

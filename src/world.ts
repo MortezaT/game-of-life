@@ -1,23 +1,37 @@
-import { willCellSurvive } from './utils.mjs';
+import { willCellSurvive } from './utils.js';
 
-const defaultOptions = {
-  width: 20,
-  height: 30,
-  initialState: []
+export type WorldState = boolean[][];
+
+type WorldOptions = {
+  width?: number;
+  height?: number;
+  interval?: number;
+  initialState: WorldState;
 };
 
+const defaultOptions: Required<WorldOptions> = {
+  width: 20,
+  height: 30,
+  interval: 50,
+  initialState: [],
+};
+
+type WorldEvents = 'change' | 'resume' | 'stop';
+
 export class World {
-  #intervalId = null;
-  #interval = 50;
+  #intervalId: number | null = null;
+  #interval = defaultOptions.interval;
   #width = defaultOptions.width;
   #height = defaultOptions.height;
-  #eventHandlers = {};
-  #initialState = [];
+  #eventHandlers: Record<string, (() => void)[]> = {};
+  #initialState: WorldState = [];
 
-  state = null;
+  state: WorldState = [];
   isRunning = false;
 
-  get interval() { return this.#interval; };
+  get interval() {
+    return this.#interval;
+  }
 
   set interval(value) {
     if (isNaN(value)) return;
@@ -25,7 +39,9 @@ export class World {
     this.reload();
   }
 
-  get width() { return this.#width; };
+  get width() {
+    return this.#width;
+  }
 
   set width(value) {
     if (isNaN(value)) return;
@@ -34,7 +50,9 @@ export class World {
     this.reload();
   }
 
-  get height() { return this.#height; };
+  get height() {
+    return this.#height;
+  }
 
   set height(value) {
     if (isNaN(value)) return;
@@ -43,22 +61,20 @@ export class World {
     this.reload();
   }
 
-  constructor(
-    node,
-    options
-  ) {
-    Object.entries(defaultOptions)
-      .forEach(([key, value]) => options[key] = options[key] ?? value);
+  constructor(public node: HTMLElement, options: WorldOptions) {
+    Object.entries(defaultOptions).forEach(
+      ([key, value]) =>
+        (options[key as keyof WorldOptions] = (options as any)[key] ?? value)
+    );
 
-    this.node = node;
-    this.#width = options.width;
-    this.#height = options.height;
-    this.#initialState = options.initialState;
+    this.#width = options.width!;
+    this.#height = options.height!;
+    this.#initialState = options.initialState!;
 
     this.#init();
   }
 
-  toggle = () => this.isRunning ? this.stop() : this.resume();
+  toggle = () => (this.isRunning ? this.stop() : this.resume());
 
   reload = () => {
     if (this.isRunning) {
@@ -68,7 +84,7 @@ export class World {
   };
 
   stop = () => {
-    clearInterval(this.#intervalId);
+    if (this.#intervalId) clearInterval(this.#intervalId);
     this.#intervalId = null;
     this.isRunning = false;
     this.#emit('stop');
@@ -93,8 +109,8 @@ export class World {
     this.#render();
   };
 
-  getLiveNeighborsCount(i, j) {
-    const neighbors = [];
+  getLiveNeighborsCount(i: number, j: number) {
+    const neighbors: boolean[] = [];
     for (let x = i - 1; x <= i + 1; x++) {
       let row = this.state[(this.height + x) % this.height];
 
@@ -109,17 +125,19 @@ export class World {
     return neighbors.filter(Boolean).length;
   }
 
-  addEventListener = (eventType, eventHandler) => {
+  addEventListener = (eventType: WorldEvents, eventHandler: () => void) => {
     if (!this.#eventHandlers[eventType]) {
       this.#eventHandlers[eventType] = [];
     }
     this.#eventHandlers[eventType].push(eventHandler);
   };
 
-  removeEventListener = (eventType, eventHandler) => {
+  removeEventListener = (eventType: WorldEvents, eventHandler: () => void) => {
     const handlers = this.#eventHandlers[eventType];
     if (!handlers?.length) return;
-    this.#eventHandlers[eventType] = handlers.filter((handler) => handler != eventHandler);
+    this.#eventHandlers[eventType] = handlers.filter(
+      (handler) => handler != eventHandler
+    );
   };
 
   #render = () => {
@@ -139,7 +157,9 @@ export class World {
 
   #calculateNextState = () => {
     const newState = this.state.map((row, i) =>
-      row.map((isAlive, j) => willCellSurvive(isAlive, this.getLiveNeighborsCount(i, j)))
+      row.map((isAlive, j) =>
+        willCellSurvive(isAlive, this.getLiveNeighborsCount(i, j))
+      )
     );
     this.state = newState;
   };
@@ -150,18 +170,18 @@ export class World {
     this.#emit('change');
   };
 
-  #emit = (eventType) => {
-    this.#eventHandlers[eventType]?.forEach(handler => handler());
+  #emit = (eventType: WorldEvents) => {
+    this.#eventHandlers[eventType]?.forEach((handler) => handler());
   };
 
   #onResize = () => {
     const wasRunning = this.isRunning;
-    if(wasRunning) this.stop();
+    if (wasRunning) this.stop();
 
     this.#initialState = this.state;
     this.#init();
-    
-    if(wasRunning) this.resume();
+
+    if (wasRunning) this.resume();
   };
 
   #init = () => {
@@ -171,7 +191,7 @@ export class World {
   };
 
   #initState = () => {
-    const state = [];
+    const state: WorldState = [];
 
     for (let i = 0; i < this.height; i++) {
       state[i] = [];
@@ -194,8 +214,8 @@ export class World {
       row.forEach((_cell, j) => {
         const cellNode = document.createElement('div');
         cellNode.className = 'cell';
-        cellNode.dataset.i = i;
-        cellNode.dataset.j = j;
+        cellNode.dataset.i = '' + i;
+        cellNode.dataset.j = '' + j;
 
         rowNode.appendChild(cellNode);
       });
@@ -204,8 +224,9 @@ export class World {
     this.node.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const i = +e.target.dataset['i'];
-      const j = +e.target.dataset['j'];
+      const target = e.target! as HTMLElement;
+      const i = +target.dataset.i!;
+      const j = +target.dataset.j!;
 
       this.state[i][j] = !this.state[i][j];
       this.#render();
