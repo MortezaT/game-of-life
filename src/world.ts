@@ -1,4 +1,4 @@
-import { willCellSurvive } from './utils.js';
+import { calculateNextState, resize } from './utils.js';
 
 export type WorldState = boolean[][];
 
@@ -109,22 +109,6 @@ export class World {
     this.#render();
   };
 
-  getLiveNeighborsCount(i: number, j: number) {
-    const neighbors: boolean[] = [];
-    for (let x = i - 1; x <= i + 1; x++) {
-      let row = this.state[(this.height + x) % this.height];
-
-      for (let y = j - 1; y <= j + 1; y++) {
-        if (x == i && y == j) continue;
-        let cell = row[(this.width + y) % this.width];
-
-        neighbors.push(cell);
-      }
-    }
-
-    return neighbors.filter(Boolean).length;
-  }
-
   addEventListener = (eventType: WorldEvents, eventHandler: () => void) => {
     if (!this.#eventHandlers[eventType]) {
       this.#eventHandlers[eventType] = [];
@@ -155,17 +139,11 @@ export class World {
     });
   };
 
-  #calculateNextState = () => {
-    const newState = this.state.map((row, i) =>
-      row.map((isAlive, j) =>
-        willCellSurvive(isAlive, this.getLiveNeighborsCount(i, j))
-      )
-    );
-    this.state = newState;
-  };
-
   nextStep = () => {
-    this.#calculateNextState();
+    this.state = calculateNextState(this.state, {
+      height: this.height,
+      width: this.width,
+    });
     this.#render();
     this.#emit('change');
   };
@@ -178,8 +156,13 @@ export class World {
     const wasRunning = this.isRunning;
     if (wasRunning) this.stop();
 
-    this.#initialState = this.state;
-    this.#init();
+    this.#initialState = resize(this.state, {
+      width: this.width,
+      height: this.height,
+    });
+    this.#initUI();
+    this.#render();
+    this.#emit('change');
 
     if (wasRunning) this.resume();
   };
