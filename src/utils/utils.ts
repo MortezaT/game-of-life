@@ -1,4 +1,4 @@
-import { WorldState } from './world';
+import { AppState } from '../store/index.js';
 
 type CalcOptions = {
   i: number;
@@ -6,7 +6,8 @@ type CalcOptions = {
   height: number;
   width: number;
 };
-const neighborsCoordinates = Array(3)
+
+const neighborsCoordinateOffset = Array(3)
   .fill(null)
   .map((_, i) =>
     Array(3)
@@ -15,13 +16,13 @@ const neighborsCoordinates = Array(3)
       .filter(([i, j]) => i || j)
   );
 
-const normalizeValue = (value: number, max: number) => (max + value) % value;
+const normalizeValue = (value: number, max: number) => (max + value) % max;
 
-const getLiveNeighborsCount = (
-  state: WorldState,
+export const getLiveNeighborsCount = (
+  state: AppState['world'],
   { i, j, height, width }: CalcOptions
 ) =>
-  neighborsCoordinates
+  neighborsCoordinateOffset
     .flatMap((row) =>
       row.map(
         ([x, y]) =>
@@ -30,7 +31,7 @@ const getLiveNeighborsCount = (
     )
     .filter(Boolean).length;
 
-function willCellSurvive(
+export function willCellSurvive(
   isAlive: boolean,
   liveNeighborsCount: number
 ): boolean {
@@ -44,27 +45,3 @@ function willCellSurvive(
 
   return false;
 }
-
-export const calculateNextState = (
-  prev: WorldState,
-  options: Pick<CalcOptions, 'height' | 'width'>
-) =>
-  prev.map((row, i) =>
-    row.map((isAlive, j) =>
-      willCellSurvive(
-        isAlive,
-        getLiveNeighborsCount(prev, { i, j, ...options })
-      )
-    )
-  );
-
-export const resize = (
-  state: WorldState,
-  {
-    width = state.length,
-    height = state[0].length,
-  }: { width?: number; height: number }
-) =>
-  Array.from({ length: width }, (_, i) =>
-    Array.from({ length: height }, (_, j) => state?.[i]?.[j] ?? false)
-  );

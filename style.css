@@ -1,18 +1,25 @@
 :root {
-  --body-bg: #fffbe6;
-  --side-bar-bg: #677d6a;
-  --input-text: black;
+  --color-light: #f0fbe6;
+  --color-dark: #333;
+  --body-bg: var(--color-light);
   --cell-bg: #1a3636;
+  --aside-bg: #677d6a;
+  --text-color: var(--color-dark);
+  --text-color-reverse: var(--color-light);
   --live-cell-bg: #aeaeae;
-  --play-btn: green;
-  --pause-btn: red;
+  --play-btn-bg: green;
+  --pause-btn-bg: red;
   --live-cell-hover: #e4003a;
+  --spacing: 8px;
+  --spacing-x2: calc(var(--spacing) * 2);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --body-bg: #1e201e;
-    /* --side-bar-bg: #1a3636; */
+    --body-bg: var(--color-dark);
+    --text-color: var(--color-light);
+    --text-color-reverse: var(--color-dark);
+    --aside-bg: #1a3636;
   }
 }
 
@@ -27,74 +34,68 @@ body {
 }
 
 #app {
-  display: flex;
+  display: grid;
   align-items: stretch;
   justify-content: stretch;
   min-height: 100vh;
-}
-
-button {
-  border: none;
-  padding: 10px;
-  border-radius: 7px;
+  grid-template-columns: 300px 1fr;
 }
 
 button:hover {
   box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
-  transform: translateY(-2px);
 }
 
-input {
+.text-field,
+button {
+  height: 32px;
+  border-radius: 4px;
+  padding: 4px 8px;
   border: none;
-  color: black;
-  text-align: center;
-  padding: 10px;
-  width: 180px;
-  margin: 5px 0 5px 0;
-  border-radius: 7px;
+  color: var(--text-color);
+  background-color: var(--body-bg);
 }
 
-.side-bar {
-  background-color: var(--side-bar-bg);
-  width: 200px;
-  min-height: 100vh;
-  align-content: center;
-  padding: 0 20px 0 20px;
+aside {
+  background-color: var(--aside-bg);
+  padding: 20px;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
+  gap: var(--spacing-x2);
 }
 
-.play-pause-active.play-pause {
-  background-color: var(--play-btn);
+.toggle {
+  background-color: var(--pause-btn-bg);
+  color: var(--color-light);
 }
 
-.play-pause {
-  background-color: var(--pause-btn);
-  color: white;
-  width: 200px;
-  margin: auto;
+.toggle.toggle-active {
+  background-color: var(--play-btn-bg);
 }
 
-#next-step {
-  width: 200px;
-  margin-top: 10px;
+.text-field {
+  display: flex;
+  gap: var(--spacing-x2);
+  align-items: center;
 }
 
-#clear,
-#reset {
-  width: 95px;
-  margin: 10px 0 5px 0;
+.text-field > * {
+  flex: 1;
 }
 
-#clear {
-  float: right;
+.text-field span {
+  width: 40px;
+  font-weight: 500;
+  padding-left: var(--spacing);
 }
 
-#inputs-section {
-  width: 180px;
-}
-
-#apply-changes {
-  width: 100%;
-  margin-top: 5px;
+.text-field input {
+  background-color: inherit;
+  color: inherit;
+  height: 100%;
+  border-width: 0;
+  border-bottom: 1px solid var(--text-color);
+  padding-inline: var(--spacing);
 }
 
 .world {
@@ -130,4 +131,8 @@ input {
 
 .live:hover {
   background-color: var(--live-cell-hover);
+}
+
+.spacer {
+  flex: 1;
 }

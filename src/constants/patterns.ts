@@ -1,6 +1,6 @@
-import type { WorldState } from './world.js';
+import { AppState } from '../store/index.js';
 
-export const patterns: Record<string, Record<string, WorldState>> = {
+export const patterns: Record<string, Record<string, AppState['world']>> = {
   spaceships: {
     glider: [
       [true, false, true],

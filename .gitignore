@@ -4,6 +4,8 @@ dist
 
 *.log
 
+tsconfig.tsbuildinfo
+
 # System Files
 .DS_Store
 Thumbs.db
