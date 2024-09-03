@@ -45,3 +45,6 @@ export function willCellSurvive(
 
   return false;
 }
+
+export const makeArrayIfSingle = <TItem>(items: TItem | TItem[]) =>
+  Array.isArray(items) ? items : [items];

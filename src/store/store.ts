@@ -1,19 +1,26 @@
-import { OneRequired } from '../types.js';
-import { getLiveNeighborsCount, willCellSurvive } from '../utils/index.js';
+import { OneRequired, UnsubscribeFn } from '../types.js';
+import {
+  getLiveNeighborsCount,
+  makeArrayIfSingle,
+  willCellSurvive,
+} from '../utils/index.js';
 
 export type StoreEventType =
-  | 'all'
-  | 'clear'
   | 'cell-toggle'
+  | 'change'
+  | 'clear'
   | 'next'
   | 'pause'
   | 'play'
   | 'resize'
   | 'running'
-  | 'speed'
   | 'speed-down'
   | 'speed-up'
+  | 'speed'
+  | 'tick'
   | 'toggle';
+
+type StateDiffType = keyof AppStateDiff;
 
 export type AppState = {
   readonly running: boolean;
@@ -23,14 +30,25 @@ export type AppState = {
   readonly world: boolean[][];
 };
 
+export type AppStateDiff = Partial<Omit<AppState, 'world'>> & {
+  world?: number[][];
+};
+
 export type StoreEvent = {
   state: AppState;
   reason: StoreEventType;
 };
 
-type StoreEventHandler = (event: StoreEvent) => void;
+export type StoreEventHandler = (state: StoreEvent) => void;
+export type StoreWatchHandler = (diff: AppStateDiff, state: AppState) => void;
 
 export class Store {
+  protected get _hasChanges() {
+    return Object.values(this._diffs).length > 0;
+  }
+
+  protected _eventHandlers: Record<string, StoreEventHandler[]> = {};
+
   get state() {
     return this._state;
   }
@@ -39,11 +57,10 @@ export class Store {
     return Math.round(1000 / this._state.speed);
   }
 
-  #eventHandlers: Record<string, StoreEventHandler[]> = {};
-
-  constructor(private _state: AppState) {
+  constructor(private _state: AppState, private _diffs: AppStateDiff = {}) {
     const { width, height } = this._state;
     this.resetWorld({ width, height });
+    this.#tick();
   }
 
   toggleCell = (i: number, j: number) => {
@@ -52,19 +69,19 @@ export class Store {
     const world = this._state.world.map((row) => row.map((value) => value));
     world[i][j] = !world[i][j];
 
-    this.setChange({ world }, 'cell-toggle');
+    this._onChange({ world }, 'cell-toggle');
   };
 
-  play = () => this.setChange({ running: true }, ['running', 'play']);
+  play = () => this._onChange({ running: true }, ['running', 'play']);
 
-  pause = () => this.setChange({ running: false }, ['running', 'pause']);
+  pause = () => this._onChange({ running: false }, ['running', 'pause']);
 
   toggle = () =>
-    this.setChange({ running: !this._state.running }, ['running', 'toggle']);
+    this._onChange({ running: !this._state.running }, ['running', 'toggle']);
 
   clear = () => {
     const world = this._state.world.map((row) => row.map((_) => false));
-    this.setChange({ world }, 'clear');
+    this._onChange({ world }, 'clear');
   };
 
   next = () => {
@@ -79,7 +96,7 @@ export class Store {
       )
     );
 
-    this.setChange({ world }, 'next');
+    this._onChange({ world }, 'next');
   };
 
   resize = (dimensions: OneRequired<Pick<AppState, 'width' | 'height'>>) => {
@@ -102,36 +119,45 @@ export class Store {
   ) => {
     if (100 < speed || speed < 0) return;
 
-    this.setChange({ speed }, reason);
+    this._onChange({ speed }, reason);
   };
 
-  watch = (handler: StoreEventHandler) => this.addEventListener('all', handler);
+  watch = (
+    keys: StateDiffType | StateDiffType[],
+    handlerFn: StoreWatchHandler
+  ): UnsubscribeFn => {
+    keys = makeArrayIfSingle(keys);
+    const handler: StoreEventHandler = () =>
+      keys.some((key) => key in this._diffs) &&
+      handlerFn(this._diffs, this._state);
 
-  unwatch = (handler: StoreEventHandler) =>
-    this.removeEventListener('all', handler);
+    this.addEventListener('tick', handler);
+
+    return () => this.removeEventListener('tick', handler);
+  };
 
   addEventListener = (
     type: StoreEventType,
     eventHandler: StoreEventHandler
   ) => {
-    if (!this.#eventHandlers[type]) {
-      this.#eventHandlers[type] = [];
+    if (!this._eventHandlers[type]) {
+      this._eventHandlers[type] = [];
     }
-    this.#eventHandlers[type].push(eventHandler);
+    this._eventHandlers[type].push(eventHandler);
   };
 
   removeEventListener = (
     type: StoreEventType,
     eventHandler: StoreEventHandler
   ) => {
-    this.#eventHandlers[type] = (this.#eventHandlers[type] || []).filter(
+    this._eventHandlers[type] = (this._eventHandlers[type] || []).filter(
       (handler) => handler != eventHandler
     );
   };
 
   #emit = (reason: StoreEventType) => {
-    const handlers = (this.#eventHandlers.all || []).concat(
-      this.#eventHandlers[reason] || []
+    const handlers = (this._eventHandlers.all || []).concat(
+      this._eventHandlers[reason] || []
     );
     handlers.forEach((handle) => handle({ reason, state: this._state }));
   };
@@ -145,24 +171,42 @@ export class Store {
       )
     );
 
-    this.setChange({ ...dimensions, world });
+    this._onChange({ ...dimensions, world });
   }
 
-  private setRunning = (
-    type: StoreEventType,
-    setter: (running: boolean) => boolean
-  ) => {
-    this.setChange({ running: setter(this._state.running) }, type);
-  };
-
-  private setChange = (
+  private _onChange = (
     changes: Partial<AppState>,
     type?: StoreEventType | StoreEventType[]
   ) => {
+    const { world, ...rest } = changes;
+
+    this._diffs = !world
+      ? rest
+      : { ...rest, world: this.#getWorldDiff(this._state.world, world) };
+
     this._state = { ...this._state, ...changes };
 
     if (!type) return;
 
     (Array.isArray(type) ? type : [type]).forEach(this.#emit);
+  };
+
+  #getWorldDiff = (prev: AppState['world'], current: AppState['world']) =>
+    prev
+      .flatMap((row, i) =>
+        row.map(
+          (lastStatus, j) =>
+            (lastStatus != current[i]?.[j] ? [i, j] : undefined)!
+        )
+      )
+      .filter(Boolean);
+
+  #tick = () => {
+    const { running } = this._state;
+    this.#emit('tick');
+
+    if (running) this.next();
+
+    setTimeout(this.#tick, this.interval);
   };
 }

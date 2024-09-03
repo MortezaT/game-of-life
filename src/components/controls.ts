@@ -1,4 +1,10 @@
-import { AppState, Store } from '../store/index.js';
+import {
+  AppState,
+  AppStateDiff,
+  Store,
+  StoreEventHandler,
+  StoreWatchHandler,
+} from '../store/index.js';
 import { Component } from './component.js';
 
 type KeyToActionMapper<TValue = any> = Record<
@@ -12,6 +18,14 @@ type ActionMap = {
 };
 
 export class Controls extends Component {
+  get #toggleBtn() {
+    return this._query('button.toggle');
+  }
+
+  get #inputs() {
+    return this._queryAll<HTMLInputElement>('input');
+  }
+
   #actionMaps: ActionMap = {
     keyboard: {
       raw: {
@@ -34,12 +48,10 @@ export class Controls extends Component {
     },
   };
 
-  override getNode(): HTMLElement {
+  override createNode(): HTMLElement {
     return document.createElement('aside');
   }
-  override destroyNode(): void {
-    this.node.remove();
-  }
+
   override init(): void {
     const { width, height, speed } = this.store.state;
     this.node.innerHTML = `
@@ -79,11 +91,6 @@ export class Controls extends Component {
 
   override render(): void {
     const { state } = this.store;
-    const toggle = <HTMLButtonElement>this.node.querySelector('.toggle');
-    state.running
-      ? toggle.classList.add('toggle-active')
-      : toggle.classList.remove('toggle-active');
-
     this.node
       .querySelectorAll('input')
       .forEach(
@@ -93,47 +100,21 @@ export class Controls extends Component {
   }
 
   override addListeners(): void {
-    document.addEventListener('keydown', this.#keyboardShortcuts);
-
-    this.node
-      .querySelector('.toggle')
-      ?.addEventListener('click', this.store.toggle);
-
-    this.node
-      .querySelector('.next')
-      ?.addEventListener('click', this.store.next);
-
-    this.node
-      .querySelector('.clear')
-      ?.addEventListener('click', this.store.clear);
-
-    this.node
-      .querySelectorAll('input')
-      .forEach((input) => input.addEventListener('change', this.#inputChange));
+    this._listen(document, 'keydown', this.#onKeydown);
+    this._listen(this.node, 'keydown', this.#onEnter);
+    this._listen(this.#toggleBtn!, 'click', this.store.toggle);
+    this._listen('.next', 'click', this.store.next);
+    this._listen('.clear', 'click', this.store.clear);
+    this._listen('button.apply', 'click', this.#onApplyChanges);
+    this._watchStore(['height', 'width', 'speed'], this.#updateInputs);
+    this._listenToStore('running', ({ state: { running } }) => {
+      running
+        ? this.#toggleBtn!.classList.add('toggle-active')
+        : this.#toggleBtn!.classList.remove('toggle-active');
+    });
   }
 
-  override removeListeners(): void {
-    document.removeEventListener('keydown', this.#keyboardShortcuts);
-
-    this.node
-      .querySelector('.toggle')
-      ?.removeEventListener('click', this.store.toggle);
-
-    this.node
-      .querySelector('.next')
-      ?.removeEventListener('click', this.store.next);
-
-    this.node
-      .querySelector('.clear')
-      ?.removeEventListener('click', this.store.clear);
-    this.node
-      .querySelectorAll('input')
-      .forEach((input) =>
-        input.removeEventListener('change', this.#inputChange)
-      );
-  }
-
-  #keyboardShortcuts = (event: KeyboardEvent) => {
+  #onKeydown = (event: KeyboardEvent) => {
     const { key, shiftKey } = event;
 
     let map = shiftKey
@@ -143,9 +124,23 @@ export class Controls extends Component {
     map[key]?.(this.store, key);
   };
 
-  #inputChange = (e: Event) => {
-    const { name, value } = e.target as HTMLInputElement;
+  #onEnter = (e: KeyboardEvent) => {
+    if (e.key == 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      this.#onApplyChanges();
+    }
+  };
+  #onApplyChanges = () => {
+    this.#inputs.forEach(({ name, value }) => {
+      this.#actionMaps.input[name]?.(this.store, +value);
+    });
+  };
 
-    this.#actionMaps.input[name]?.(this.store, +value);
+  #updateInputs: StoreWatchHandler = (changes) => {
+    this.#inputs.forEach((input) => {
+      if (input.name in changes)
+        input.value = changes[input.name as keyof AppStateDiff]!.toString();
+    });
   };
 }
