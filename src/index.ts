@@ -1,13 +1,14 @@
 import { App } from './components/index.js';
-import { patterns } from './constants/patterns.js';
+import { getPattern } from './constants/patterns.js';
 import { AppState, Store } from './store/index.js';
 
+
 const initialState: AppState = {
-  running: false,
-  width: 50,
-  height: 70,
-  speed: 1,
-  world: patterns.spaceships.glider,
+  running: true,
+  width: 30,
+  height: 30,
+  speed: 5,
+  world: getPattern('oscillators.pentaDecathlon'),
 };
 
 const store = new Store(initialState);

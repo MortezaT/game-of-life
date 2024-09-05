@@ -1,9 +1,6 @@
-import {
-  Store,
-  StoreEventHandler,
-  StoreEventType
-} from '../store/index.js';
-import { UnsubscribeFn } from '../types.js';
+import { Store, StoreEventHandler, StoreEventType } from '../store/index.js';
+import { OneOrMany, UnsubscribeFn } from '../types.js';
+import { makeArrayIfSingle } from '../utils/utils.js';
 
 export abstract class Component {
   #node: HTMLElement | null = null;
@@ -75,9 +72,12 @@ export abstract class Component {
   }
 
   protected _listenToStore = (
-    type: StoreEventType,
+    type: OneOrMany<StoreEventType>,
     listener: StoreEventHandler
-  ) => this._listen(this.store, type, listener);
+  ) =>
+    makeArrayIfSingle(type).forEach((type) =>
+      this._listen(this.store, type, listener)
+    );
 
   protected _watchStore = (...args: Parameters<Store['watch']>) => {
     this._unSubscribeCallbackList.push(this.store.watch(...args));

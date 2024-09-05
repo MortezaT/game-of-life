@@ -1,26 +1,33 @@
-import { AppState } from '../store/index.js';
+import { AppState } from '../store';
+import { LeavesPath, Paths } from '../types';
 
-export const patterns: Record<string, Record<string, AppState['world']>> = {
+type Patterns = typeof patterns;
+
+const patterns = {
   spaceships: {
     glider: [
       [true, false, true],
       [false, true, true],
       [false, true, false],
     ],
-    LWSS: [
+    LightWeight: [
+      [false, false, false, false, false],
       [false, false, true, true, false],
       [true, true, false, true, true],
       [true, true, true, true, false],
       [false, true, true, false, false],
     ],
-    MWSS: [
+    MiddleWeight: [
+      [false, false, false, false, false, false],
       [false, true, true, true, true, true],
       [true, false, false, false, false, true],
       [false, false, false, false, false, true],
       [true, false, false, false, true, false],
       [false, false, true, false, false, true],
     ],
-    HWSS: [
+    HeavyWeight: [
+      [false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false],
       [false, true, true, true, true, true, true],
       [true, false, false, false, false, false, true],
       [false, false, false, false, false, false, true],
@@ -242,16 +249,20 @@ export const patterns: Record<string, Record<string, AppState['world']>> = {
       ],
     ],
     pentaDecathlon: [
-      [false, true, false],
-      [false, true, false],
-      [true, false, true],
-      [false, true, false],
-      [false, true, false],
-      [false, true, false],
-      [false, true, false],
-      [true, false, true],
-      [false, true, false],
-      [false, true, false],
+      [false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false],
+      [false, false, false, false, false, true, false],
+      [false, false, false, false, false, true, false],
+      [false, false, false, false, true, false, true],
+      [false, false, false, false, false, true, false],
+      [false, false, false, false, false, true, false],
+      [false, false, false, false, false, true, false],
+      [false, false, false, false, false, true, false],
+      [false, false, false, false, true, false, true],
+      [false, false, false, false, false, true, false],
+      [false, false, false, false, false, true, false],
     ],
   },
   still: {
@@ -281,4 +292,9 @@ export const patterns: Record<string, Record<string, AppState['world']>> = {
       [false, true, false],
     ],
   },
-};
+} as const;
+
+export const getPattern = (type: LeavesPath<Patterns, 1>) =>
+  type
+    .split('.')
+    .reduce((obj: any, key: string) => obj[key], patterns) as AppState['world'];

@@ -17,6 +17,8 @@ type ActionMap = {
   keyboard: { [key in 'raw' | 'shift']: KeyToActionMapper };
 };
 
+const runningActiveClassName = 'toggle-active';
+
 export class Controls extends Component {
   get #toggleBtn() {
     return this._query('button.toggle');
@@ -53,7 +55,7 @@ export class Controls extends Component {
   }
 
   override init(): void {
-    const { width, height, speed } = this.store.state;
+    const { width, height, speed, running } = this.store.state;
     this.node.innerHTML = `
 <button class="toggle">Play/Pause</button>
 <button class="next">Next step</button>
@@ -86,6 +88,7 @@ export class Controls extends Component {
 <button class="apply" type="button">Apply changes</button>
 `;
 
+    if (running) this.#toggleBtn?.classList.add('toggle-active');
     super.init();
   }
 
@@ -107,10 +110,10 @@ export class Controls extends Component {
     this._listen('.clear', 'click', this.store.clear);
     this._listen('button.apply', 'click', this.#onApplyChanges);
     this._watchStore(['height', 'width', 'speed'], this.#updateInputs);
-    this._listenToStore('running', ({ state: { running } }) => {
+    this._watchStore('running', ({ running }) => {
       running
-        ? this.#toggleBtn!.classList.add('toggle-active')
-        : this.#toggleBtn!.classList.remove('toggle-active');
+        ? this.#toggleBtn!.classList.add(runningActiveClassName)
+        : this.#toggleBtn!.classList.remove(runningActiveClassName);
     });
   }
 

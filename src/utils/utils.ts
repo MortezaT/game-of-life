@@ -1,4 +1,5 @@
 import { AppState } from '../store/index.js';
+import { OneOrMany } from '../types.js';
 
 type CalcOptions = {
   i: number;
@@ -46,5 +47,5 @@ export function willCellSurvive(
   return false;
 }
 
-export const makeArrayIfSingle = <TItem>(items: TItem | TItem[]) =>
+export const makeArrayIfSingle = <TItem>(items: OneOrMany<TItem>) =>
   Array.isArray(items) ? items : [items];

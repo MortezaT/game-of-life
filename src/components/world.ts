@@ -45,10 +45,12 @@ export class World extends Component {
 
   override addListeners(): void {
     this._listen(this.node, 'click', this.#cellToggleListener);
-    this._listenToStore('resize', this.init);
     this._listenToStore('next', this.render);
-    // TODO: render world on state change
-    // this._watchStore('world', ({ world }) => world);
+    this._watchStore('world', this.render);
+    this._listenToStore('resize', () => {
+      this.init();
+      this.render();
+    });
   }
 
   #cellToggleListener = (e: MouseEvent) => {
